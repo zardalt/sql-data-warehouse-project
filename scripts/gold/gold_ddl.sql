@@ -1,6 +1,16 @@
 /* 
-This script creates the dim_products, dim_customers, and the facts_sales views.
+This script creates views for the gold layer in the data warehouse.
+The gold layer represents the final dimension and facts tables (Star Schema)
+
+Each view performs transactions and combines data from the silver layer
+to produce a clean, enriched, and business-ready dataset.
+
+Usage:
+	- These views can be queried directly for analytics and reporting.
 */
+IF OBJECT_ID('gold.dim_products', 'V') IS NOT NULL
+	DROP VIEW gold.dim_products;
+GO
 
 CREATE VIEW gold.dim_products AS
 	SELECT 
@@ -21,7 +31,11 @@ CREATE VIEW gold.dim_products AS
 	WHERE pi.prd_end_dt IS NULL; -- filter out all historical data
 	GO
 
-	CREATE VIEW gold.dim_customers AS (
+IF OBJECT_ID('gold.dim_customers', 'V') IS NOT NULL
+	DROP VIEW gold.dim_customers;
+GO
+	
+CREATE VIEW gold.dim_customers AS (
 	SELECT
 		ROW_NUMBER() OVER(ORDER BY cst_id) AS customer_key,
 		ci.cst_id AS customer_id,
@@ -44,6 +58,10 @@ CREATE VIEW gold.dim_products AS
 );
 GO
 
+IF OBJECT_ID('gold.facts_sales', 'V') IS NOT NULL
+	DROP VIEW gold.facts_sales;
+GO
+	
 CREATE VIEW gold.facts_sales AS
 	SELECT
 		sd.sls_ord_num AS order_number,
